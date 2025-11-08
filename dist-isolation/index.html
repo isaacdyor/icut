@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tauri Isolation</title>
+</head>
+<body>
+  <script>
+    window.__TAURI_ISOLATION_HOOK__ = (payload) => {
+      // let's not verify or modify anything, just print the content from the hook
+      console.log('hook', payload);
+      return payload;
+    };
+  </script>
+</body>
+</html>
