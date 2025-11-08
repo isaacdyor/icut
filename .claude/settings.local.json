@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Read(//Users/isaacdyor/Library/**)",
+      "Bash(cat:*)",
+      "Bash(bun run:*)"
     ],
     "deny": [],
     "ask": []
