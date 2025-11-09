@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { commands } from "./bindings";
 import { useDragDrop } from "./hooks/use-drag-drop";
+import { FilePreview } from "./components/file-preview";
 import "./App.css";
 
 function App() {
@@ -62,46 +63,229 @@ function App() {
   });
 
   return (
-    <main className="container">
-      <h1>iCut - File Manager</h1>
-
-      <div
-        ref={dropZoneRef}
-        className={`drop-zone ${dragActive ? "active" : ""}`}
-        style={{
-          border: "2px dashed #ccc",
-          borderRadius: "8px",
-          padding: "40px",
-          textAlign: "center",
-          marginBottom: "20px",
-          backgroundColor: dragActive ? "#f0f0f0" : "transparent",
-        }}
-      >
-        <p>Drag and drop files here</p>
-      </div>
-
-      {error && <p style={{ color: "red" }}>Error: {error.message}</p>}
-      {saveFileMutation.error && <p style={{ color: "red" }}>Error: {saveFileMutation.error.message}</p>}
-
-      <div>
-        <h2>Saved Files ({files.length})</h2>
-        <ul style={{ textAlign: "left", listStyle: "none", padding: 0 }}>
-          {files.map((file, index) => (
-            <li
-              key={index}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100vh",
+        backgroundColor: "#0a0a0a",
+        color: "#fff",
+        overflow: "hidden",
+      }}
+    >
+      {/* Top Section - Assets and Preview */}
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+        {/* Left Panel - Assets */}
+        <div
+          ref={dropZoneRef}
+          style={{
+            width: "380px",
+            backgroundColor: dragActive ? "#1a2a3a" : "#1a1a1a",
+            borderRight: "1px solid #2a2a2a",
+            display: "flex",
+            flexDirection: "column",
+            transition: "background-color 0.2s",
+          }}
+        >
+          {/* Tabs */}
+          <div
+            style={{
+              display: "flex",
+              gap: "4px",
+              padding: "12px",
+              borderBottom: "1px solid #2a2a2a",
+            }}
+          >
+            <button
               style={{
-                marginBottom: "8px",
-                padding: "8px",
-                backgroundColor: "#f5f5f5",
+                padding: "8px 16px",
+                backgroundColor: "#2a2a2a",
+                border: "none",
                 borderRadius: "4px",
+                color: "#fff",
+                fontSize: "12px",
+                cursor: "pointer",
               }}
             >
-              {file.split("/").pop() || file}
-            </li>
-          ))}
-        </ul>
+              Media
+            </button>
+          </div>
+
+          {error && (
+            <div style={{ margin: "12px 12px 0 12px", padding: "8px", backgroundColor: "#dc2626", fontSize: "11px", borderRadius: "4px" }}>
+              {error.message}
+            </div>
+          )}
+          {saveFileMutation.error && (
+            <div style={{ margin: "12px 12px 0 12px", padding: "8px", backgroundColor: "#dc2626", fontSize: "11px", borderRadius: "4px" }}>
+              {saveFileMutation.error.message}
+            </div>
+          )}
+
+          {/* Assets Grid */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "12px",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {files.length === 0 ? (
+              <div
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  textAlign: "center",
+                  border: `2px dashed ${dragActive ? "#4a9eff" : "#2a2a2a"}`,
+                  borderRadius: "8px",
+                  padding: "60px 20px",
+                  transition: "border-color 0.2s",
+                }}
+              >
+                <div style={{ fontSize: "64px", marginBottom: "16px" }}>📁</div>
+                <p style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500", color: "#fff" }}>
+                  Import
+                </p>
+                <p style={{ margin: 0, fontSize: "12px", color: "#666", lineHeight: "1.4" }}>
+                  Drag and drop videos,<br />photos, and audio files here
+                </p>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(2, 1fr)",
+                  gap: "8px",
+                }}
+              >
+                {files.map((file, index) => (
+                  <div
+                    key={index}
+                    style={{
+                      aspectRatio: "16/9",
+                      backgroundColor: "#2a2a2a",
+                      borderRadius: "6px",
+                      cursor: "grab",
+                      overflow: "hidden",
+                      position: "relative",
+                      border: "1px solid #2a2a2a",
+                      transition: "border-color 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#4a9eff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#2a2a2a";
+                    }}
+                  >
+                    <FilePreview filePath={file} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Panel - Video Preview */}
+        <div
+          style={{
+            flex: 1,
+            backgroundColor: "#0a0a0a",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "900px",
+              aspectRatio: "16/9",
+              backgroundColor: "#000",
+              borderRadius: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "#444",
+              fontSize: "14px",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+            }}
+          >
+            Player
+          </div>
+          {/* Playback Controls Placeholder */}
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "900px",
+              marginTop: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px",
+            }}
+          >
+            <button
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                backgroundColor: "#2a2a2a",
+                border: "none",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: "18px",
+              }}
+            >
+              ▶
+            </button>
+          </div>
+        </div>
       </div>
-    </main>
+
+      {/* Bottom Section - Timeline */}
+      <div
+        style={{
+          height: "320px",
+          backgroundColor: "#151515",
+          borderTop: "1px solid #2a2a2a",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div
+          style={{
+            padding: "8px 16px",
+            fontSize: "11px",
+            color: "#888",
+            borderBottom: "1px solid #2a2a2a",
+          }}
+        >
+          Timeline
+        </div>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#444",
+            fontSize: "13px",
+            backgroundImage: "linear-gradient(to right, #2a2a2a 1px, transparent 1px)",
+            backgroundSize: "20px 100%",
+          }}
+        >
+          Drag material here and start to create
+        </div>
+      </div>
+    </div>
   );
 }
 

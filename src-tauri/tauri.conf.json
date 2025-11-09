@@ -26,6 +26,10 @@
         "options": {
           "dir": "../dist-isolation"
         }
+      },
+      "assetProtocol": {
+        "enable": true,
+        "scope": ["**"]
       }
     }
   },
