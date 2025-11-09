@@ -1,10 +1,18 @@
 mod commands;
 mod db;
+mod models;
+mod schema;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri_specta::Builder::<tauri::Wry>::new()
-        .commands(tauri_specta::collect_commands![commands::save_file, commands::get_files]);
+        .commands(tauri_specta::collect_commands![
+            commands::projects::create_project_command,
+            commands::projects::get_all_projects_command,
+            commands::projects::get_project_command,
+            commands::assets::add_asset_command,
+            commands::assets::get_assets_command,
+        ]);
 
     #[cfg(debug_assertions)]
     builder

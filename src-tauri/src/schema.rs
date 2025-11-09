@@ -2,7 +2,7 @@
 
 diesel::table! {
     assets (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         project_id -> Integer,
         file_path -> Text,
         asset_type -> Text,
@@ -16,7 +16,7 @@ diesel::table! {
 
 diesel::table! {
     clips (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         track_id -> Integer,
         asset_id -> Nullable<Integer>,
         start_time_ms -> Integer,
@@ -30,7 +30,7 @@ diesel::table! {
 
 diesel::table! {
     projects (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         name -> Text,
         duration_ms -> Integer,
         frame_rate -> Integer,
@@ -43,7 +43,7 @@ diesel::table! {
 
 diesel::table! {
     tracks (id) {
-        id -> Nullable<Integer>,
+        id -> Integer,
         project_id -> Integer,
         track_type -> Text,
         order_index -> Integer,

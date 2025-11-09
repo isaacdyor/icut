@@ -1,6 +1,6 @@
 -- Projects table
 CREATE TABLE projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     duration_ms INTEGER NOT NULL DEFAULT 0,
     frame_rate INTEGER NOT NULL DEFAULT 30,
@@ -12,7 +12,7 @@ CREATE TABLE projects (
 
 -- Assets table (imported media files)
 CREATE TABLE assets (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     project_id INTEGER NOT NULL,
     file_path TEXT NOT NULL,
     asset_type TEXT NOT NULL CHECK(asset_type IN ('video', 'audio', 'image')),
@@ -26,7 +26,7 @@ CREATE TABLE assets (
 
 -- Tracks table (video/audio layers)
 CREATE TABLE tracks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     project_id INTEGER NOT NULL,
     track_type TEXT NOT NULL CHECK(track_type IN ('video', 'audio')),
     order_index INTEGER NOT NULL,
@@ -37,7 +37,7 @@ CREATE TABLE tracks (
 
 -- Clips table (instances of assets placed on tracks)
 CREATE TABLE clips (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     track_id INTEGER NOT NULL,
     asset_id INTEGER,
     start_time_ms INTEGER NOT NULL,
