@@ -5,17 +5,41 @@
 
 
 export const commands = {
-async saveFile(filePath: string) : Promise<Result<string, string>> {
+async createProjectCommand(name: string, frameRate: number | null, resolutionWidth: number | null, resolutionHeight: number | null) : Promise<Result<Project, string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("save_file", { filePath }) };
+    return { status: "ok", data: await TAURI_INVOKE("create_project_command", { name, frameRate, resolutionWidth, resolutionHeight }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
 },
-async getFiles() : Promise<Result<string[], string>> {
+async getAllProjectsCommand() : Promise<Result<Project[], string>> {
     try {
-    return { status: "ok", data: await TAURI_INVOKE("get_files") };
+    return { status: "ok", data: await TAURI_INVOKE("get_all_projects_command") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getProjectCommand(projectId: number) : Promise<Result<Project, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_project_command", { projectId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async addAssetCommand(projectId: number, filePath: string, assetType: string, durationMs: number | null, width: number | null, height: number | null, fileSizeBytes: number) : Promise<Result<Asset, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("add_asset_command", { projectId, filePath, assetType, durationMs, width, height, fileSizeBytes }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getAssetsCommand(projectId: number) : Promise<Result<Asset[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_assets_command", { projectId }) };
 } catch (e) {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
@@ -33,7 +57,8 @@ async getFiles() : Promise<Result<string[], string>> {
 
 /** user-defined types **/
 
-
+export type Asset = { id: number; project_id: number; file_path: string; asset_type: string; duration_ms: number | null; width: number | null; height: number | null; file_size_bytes: number; imported_at: string }
+export type Project = { id: number; name: string; duration_ms: number; frame_rate: number; resolution_width: number; resolution_height: number; created_at: string; updated_at: string }
 
 /** tauri-specta globals **/
 
