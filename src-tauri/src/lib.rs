@@ -3,7 +3,7 @@ mod commands;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = tauri_specta::Builder::<tauri::Wry>::new()
-        .commands(tauri_specta::collect_commands![commands::my_custom_command]);
+        .commands(tauri_specta::collect_commands![commands::save_file, commands::get_files]);
 
     #[cfg(debug_assertions)]
     builder

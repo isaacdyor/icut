@@ -4,7 +4,11 @@
       "Bash(mkdir:*)",
       "Read(//Users/isaacdyor/Library/**)",
       "Bash(cat:*)",
-      "Bash(bun run:*)"
+      "Bash(bun run:*)",
+      "Bash(cargo check:*)",
+      "Bash(cargo:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill:*)"
     ],
     "deny": [],
     "ask": []
