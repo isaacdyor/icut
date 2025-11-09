@@ -1,4 +1,5 @@
 mod commands;
+mod db;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -20,6 +21,11 @@ pub fn run() {
                 .build()
         )
         .plugin(tauri_plugin_opener::init())
+        .setup(|app| {
+            // Initialize database
+            let _conn = db::establish_connection(app.handle());
+            Ok(())
+        })
         .invoke_handler(builder.invoke_handler())
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
