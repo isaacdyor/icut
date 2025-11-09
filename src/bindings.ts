@@ -60,6 +60,14 @@ async getTracksCommand(projectId: number) : Promise<Result<Track[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async getClipsCommand(trackId: number) : Promise<Result<Clip[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_clips_command", { trackId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 

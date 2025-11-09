@@ -1,18 +1,20 @@
 import { useState, useRef } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { convertFileSrc } from "@tauri-apps/api/core";
 import { commands } from "../bindings";
 import { useDragDrop } from "../hooks/use-drag-drop";
 import { FilePreview } from "./file-preview";
-import type { Asset, Track } from "../bindings";
+import type { Asset, Track, Clip } from "../bindings";
 
 interface EditorProps {
   projectId: number;
   assets: Asset[];
   tracks: Track[];
+  clips: Clip[];
   onBack: () => void;
 }
 
-export function Editor({ projectId, assets, tracks, onBack }: EditorProps) {
+export function Editor({ projectId, assets, tracks, clips, onBack }: EditorProps) {
   const [dragActive, setDragActive] = useState(false);
   const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
   const queryClient = useQueryClient();
@@ -289,50 +291,47 @@ export function Editor({ projectId, assets, tracks, onBack }: EditorProps) {
             padding: "20px",
           }}
         >
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "900px",
-              aspectRatio: "16/9",
-              backgroundColor: "#000",
-              borderRadius: "8px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "#444",
-              fontSize: "14px",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
-            }}
-          >
-            Player
-          </div>
-          {/* Playback Controls Placeholder */}
-          <div
-            style={{
-              width: "100%",
-              maxWidth: "900px",
-              marginTop: "16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "12px",
-            }}
-          >
-            <button
+          {clips.length > 0 ? (
+            <>
+              <video
+                src={
+                  clips[0]?.asset_id
+                    ? (() => {
+                        const asset = assets.find((a) => a.id === clips[0].asset_id);
+                        return asset ? convertFileSrc(asset.file_path) : undefined;
+                      })()
+                    : undefined
+                }
+                style={{
+                  width: "100%",
+                  maxWidth: "900px",
+                  aspectRatio: "16/9",
+                  backgroundColor: "#000",
+                  borderRadius: "8px",
+                  boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                }}
+                controls
+              />
+            </>
+          ) : (
+            <div
               style={{
-                width: "40px",
-                height: "40px",
-                borderRadius: "50%",
-                backgroundColor: "#2a2a2a",
-                border: "none",
-                color: "#fff",
-                cursor: "pointer",
-                fontSize: "18px",
+                width: "100%",
+                maxWidth: "900px",
+                aspectRatio: "16/9",
+                backgroundColor: "#000",
+                borderRadius: "8px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#444",
+                fontSize: "14px",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
               }}
             >
-              ▶
-            </button>
-          </div>
+              Add clips to the timeline to preview
+            </div>
+          )}
         </div>
       </div>
 
@@ -399,45 +398,69 @@ export function Editor({ projectId, assets, tracks, onBack }: EditorProps) {
             </div>
           ) : (
             <div style={{ padding: "12px" }}>
-              {tracks.map((track) => (
-                <div
-                  key={track.id}
-                  style={{
-                    marginBottom: "8px",
-                    backgroundColor: "#1a1a1a",
-                    borderRadius: "4px",
-                    padding: "8px",
-                    minHeight: "60px",
-                    border: "1px solid #2a2a2a",
-                  }}
-                >
+              {tracks.map((track) => {
+                const trackClips = clips.filter((c) => c.track_id === track.id);
+                return (
                   <div
+                    key={track.id}
                     style={{
-                      fontSize: "10px",
-                      color: "#888",
-                      marginBottom: "4px",
+                      marginBottom: "8px",
+                      backgroundColor: "#1a1a1a",
+                      borderRadius: "4px",
+                      padding: "8px",
+                      minHeight: "60px",
+                      border: "1px solid #2a2a2a",
                     }}
                   >
-                    {track.track_type === "video" ? "Video" : "Audio"} Track{" "}
-                    {track.order_index + 1}
+                    <div
+                      style={{
+                        fontSize: "10px",
+                        color: "#888",
+                        marginBottom: "4px",
+                      }}
+                    >
+                      {track.track_type === "video" ? "Video" : "Audio"} Track{" "}
+                      {track.order_index + 1}
+                    </div>
+                    <div
+                      style={{
+                        position: "relative",
+                        height: "40px",
+                        backgroundColor: "#0a0a0a",
+                        borderRadius: "2px",
+                      }}
+                    >
+                      {trackClips.map((clip) => {
+                        const asset = assets.find((a) => a.id === clip.asset_id);
+                        return (
+                          <div
+                            key={clip.id}
+                            style={{
+                              position: "absolute",
+                              left: `${clip.start_time_ms / 100}px`,
+                              width: `${clip.duration_ms / 100}px`,
+                              height: "100%",
+                              backgroundColor: "#4a9eff",
+                              borderRadius: "2px",
+                              border: "1px solid #6ab0ff",
+                              display: "flex",
+                              alignItems: "center",
+                              padding: "0 8px",
+                              fontSize: "10px",
+                              color: "#fff",
+                              overflow: "hidden",
+                              whiteSpace: "nowrap",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {asset?.file_path.split("/").pop() || "Clip"}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
-                  {/* TODO: Render clips here - for now just showing track exists */}
-                  <div
-                    style={{
-                      height: "40px",
-                      backgroundColor: "#2a2a2a",
-                      borderRadius: "2px",
-                      display: "flex",
-                      alignItems: "center",
-                      padding: "0 8px",
-                      fontSize: "11px",
-                      color: "#ccc",
-                    }}
-                  >
-                    Track {track.id}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

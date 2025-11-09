@@ -45,6 +45,26 @@ function App() {
     enabled: currentProjectId !== null,
   });
 
+  const { data: clips = [] } = useQuery({
+    queryKey: ["clips", currentProjectId, tracks],
+    queryFn: async () => {
+      if (!currentProjectId || tracks.length === 0) return [];
+
+      const allClips = await Promise.all(
+        tracks.map(async (track) => {
+          const result = await commands.getClipsCommand(track.id);
+          if (result.status === "ok") {
+            return result.data;
+          }
+          return [];
+        })
+      );
+
+      return allClips.flat();
+    },
+    enabled: currentProjectId !== null && tracks.length > 0,
+  });
+
   if (currentProjectId === null) {
     return <Dashboard projects={projects} onOpenProject={setCurrentProjectId} />;
   }
@@ -54,6 +74,7 @@ function App() {
       projectId={currentProjectId}
       assets={assets}
       tracks={tracks}
+      clips={clips}
       onBack={() => setCurrentProjectId(null)}
     />
   );
