@@ -3,18 +3,21 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { commands } from "../bindings";
 import { useDragDrop } from "../hooks/use-drag-drop";
 import { FilePreview } from "./file-preview";
-import type { Asset } from "../bindings";
+import type { Asset, Track } from "../bindings";
 
 interface EditorProps {
   projectId: number;
   assets: Asset[];
+  tracks: Track[];
   onBack: () => void;
 }
 
-export function Editor({ projectId, assets, onBack }: EditorProps) {
+export function Editor({ projectId, assets, tracks, onBack }: EditorProps) {
   const [dragActive, setDragActive] = useState(false);
+  const [selectedAssetId, setSelectedAssetId] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const dropZoneRef = useRef<HTMLDivElement>(null);
+  const timelineDropZoneRef = useRef<HTMLDivElement>(null);
 
   const addAssetMutation = useMutation({
     mutationFn: async (filePath: string) => {
@@ -43,15 +46,31 @@ export function Editor({ projectId, assets, onBack }: EditorProps) {
     },
   });
 
-  const isOverDropZone = (x: number, y: number) => {
-    if (!dropZoneRef.current) return false;
-    const rect = dropZoneRef.current.getBoundingClientRect();
-    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-  };
+  const createTrackWithClipMutation = useMutation({
+    mutationFn: async (assetId: number) => {
+      const result = await commands.createTrackWithClipCommand(
+        projectId,
+        assetId,
+        "video", // For now, always create video tracks
+        0 // Start at 0ms for now
+      );
+
+      if (result.status === "ok") {
+        return result.data;
+      }
+      throw new Error(result.error);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["tracks", projectId] });
+    },
+  });
 
   useDragDrop({
     onHover: (position) => {
-      if (isOverDropZone(position.x, position.y)) {
+      // Use document.elementFromPoint to detect which zone we're over
+      const element = document.elementFromPoint(position.x, position.y);
+
+      if (dropZoneRef.current?.contains(element)) {
         setDragActive(true);
       } else {
         setDragActive(false);
@@ -60,7 +79,11 @@ export function Editor({ projectId, assets, onBack }: EditorProps) {
     onDrop: async (paths, position) => {
       setDragActive(false);
 
-      if (isOverDropZone(position.x, position.y)) {
+      // Use document.elementFromPoint to detect drop zone
+      const element = document.elementFromPoint(position.x, position.y);
+
+      if (dropZoneRef.current?.contains(element)) {
+        // External file dropped on asset panel - import files
         for (const filePath of paths) {
           await addAssetMutation.mutateAsync(filePath);
         }
@@ -147,7 +170,15 @@ export function Editor({ projectId, assets, onBack }: EditorProps) {
           </div>
 
           {addAssetMutation.error && (
-            <div style={{ margin: "12px 12px 0 12px", padding: "8px", backgroundColor: "#dc2626", fontSize: "11px", borderRadius: "4px" }}>
+            <div
+              style={{
+                margin: "12px 12px 0 12px",
+                padding: "8px",
+                backgroundColor: "#dc2626",
+                fontSize: "11px",
+                borderRadius: "4px",
+              }}
+            >
               {addAssetMutation.error.message}
             </div>
           )}
@@ -178,11 +209,27 @@ export function Editor({ projectId, assets, onBack }: EditorProps) {
                 }}
               >
                 <div style={{ fontSize: "64px", marginBottom: "16px" }}>📁</div>
-                <p style={{ margin: "0 0 8px 0", fontSize: "14px", fontWeight: "500", color: "#fff" }}>
+                <p
+                  style={{
+                    margin: "0 0 8px 0",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    color: "#fff",
+                  }}
+                >
                   Import
                 </p>
-                <p style={{ margin: 0, fontSize: "12px", color: "#666", lineHeight: "1.4" }}>
-                  Drag and drop videos,<br />photos, and audio files here
+                <p
+                  style={{
+                    margin: 0,
+                    fontSize: "12px",
+                    color: "#666",
+                    lineHeight: "1.4",
+                  }}
+                >
+                  Drag and drop videos,
+                  <br />
+                  photos, and audio files here
                 </p>
               </div>
             ) : (
@@ -196,21 +243,30 @@ export function Editor({ projectId, assets, onBack }: EditorProps) {
                 {assets.map((asset) => (
                   <div
                     key={asset.id}
+                    onClick={() => setSelectedAssetId(asset.id)}
                     style={{
                       aspectRatio: "16/9",
-                      backgroundColor: "#2a2a2a",
+                      backgroundColor:
+                        selectedAssetId === asset.id ? "#3a3a3a" : "#2a2a2a",
                       borderRadius: "6px",
-                      cursor: "grab",
+                      cursor: "pointer",
                       overflow: "hidden",
                       position: "relative",
-                      border: "1px solid #2a2a2a",
-                      transition: "border-color 0.2s",
+                      border:
+                        selectedAssetId === asset.id
+                          ? "2px solid #4a9eff"
+                          : "1px solid #2a2a2a",
+                      transition: "border-color 0.2s, background-color 0.2s",
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#4a9eff";
+                      if (selectedAssetId !== asset.id) {
+                        e.currentTarget.style.borderColor = "#4a9eff";
+                      }
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "#2a2a2a";
+                      if (selectedAssetId !== asset.id) {
+                        e.currentTarget.style.borderColor = "#2a2a2a";
+                      }
                     }}
                   >
                     <FilePreview filePath={asset.file_path} />
@@ -301,18 +357,89 @@ export function Editor({ projectId, assets, onBack }: EditorProps) {
           Timeline
         </div>
         <div
+          ref={timelineDropZoneRef}
+          onClick={async () => {
+            if (selectedAssetId !== null && tracks.length === 0) {
+              await createTrackWithClipMutation.mutateAsync(selectedAssetId);
+              setSelectedAssetId(null);
+            }
+          }}
           style={{
             flex: 1,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#444",
-            fontSize: "13px",
-            backgroundImage: "linear-gradient(to right, #2a2a2a 1px, transparent 1px)",
-            backgroundSize: "20px 100%",
+            overflowY: "auto",
+            backgroundColor:
+              selectedAssetId !== null && tracks.length === 0
+                ? "#1a2a3a"
+                : "transparent",
+            border:
+              selectedAssetId !== null && tracks.length === 0
+                ? "2px dashed #4a9eff"
+                : "none",
+            cursor:
+              selectedAssetId !== null && tracks.length === 0
+                ? "pointer"
+                : "default",
+            transition: "background-color 0.2s, border 0.2s",
           }}
         >
-          Drag material here and start to create
+          {tracks.length === 0 ? (
+            <div
+              style={{
+                height: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#444",
+                fontSize: "13px",
+              }}
+            >
+              {selectedAssetId !== null
+                ? "Click to add to timeline"
+                : "Select an asset and click here to add it to the timeline"}
+            </div>
+          ) : (
+            <div style={{ padding: "12px" }}>
+              {tracks.map((track) => (
+                <div
+                  key={track.id}
+                  style={{
+                    marginBottom: "8px",
+                    backgroundColor: "#1a1a1a",
+                    borderRadius: "4px",
+                    padding: "8px",
+                    minHeight: "60px",
+                    border: "1px solid #2a2a2a",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "10px",
+                      color: "#888",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {track.track_type === "video" ? "Video" : "Audio"} Track{" "}
+                    {track.order_index + 1}
+                  </div>
+                  {/* TODO: Render clips here - for now just showing track exists */}
+                  <div
+                    style={{
+                      height: "40px",
+                      backgroundColor: "#2a2a2a",
+                      borderRadius: "2px",
+                      display: "flex",
+                      alignItems: "center",
+                      padding: "0 8px",
+                      fontSize: "11px",
+                      color: "#ccc",
+                    }}
+                  >
+                    Track {track.id}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

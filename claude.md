@@ -5,6 +5,7 @@
 **Always use kebab-case for all file names.**
 
 ### Examples:
+
 - ✅ `use-drag-drop.ts`
 - ✅ `file-manager.tsx`
 - ✅ `api-client.ts`
@@ -13,6 +14,7 @@
 - ❌ `api_client.ts`
 
 ### Why kebab-case?
+
 - Consistent across the codebase
 - Works well with all operating systems
 - Easy to read and type
@@ -30,11 +32,13 @@
 **ALWAYS run type checking after making code changes:**
 
 ### Rust
+
 ```bash
 cd src-tauri && cargo check
 ```
 
 ### TypeScript
+
 ```bash
 bun run typecheck
 ```

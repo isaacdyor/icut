@@ -32,6 +32,19 @@ function App() {
     enabled: currentProjectId !== null,
   });
 
+  const { data: tracks = [] } = useQuery({
+    queryKey: ["tracks", currentProjectId],
+    queryFn: async () => {
+      if (!currentProjectId) return [];
+      const result = await commands.getTracksCommand(currentProjectId);
+      if (result.status === "ok") {
+        return result.data;
+      }
+      throw new Error(result.error);
+    },
+    enabled: currentProjectId !== null,
+  });
+
   if (currentProjectId === null) {
     return <Dashboard projects={projects} onOpenProject={setCurrentProjectId} />;
   }
@@ -40,6 +53,7 @@ function App() {
     <Editor
       projectId={currentProjectId}
       assets={assets}
+      tracks={tracks}
       onBack={() => setCurrentProjectId(null)}
     />
   );

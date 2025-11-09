@@ -44,6 +44,22 @@ async getAssetsCommand(projectId: number) : Promise<Result<Asset[], string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async createTrackWithClipCommand(projectId: number, assetId: number, trackType: string, startTimeMs: number) : Promise<Result<TrackWithClip, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("create_track_with_clip_command", { projectId, assetId, trackType, startTimeMs }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getTracksCommand(projectId: number) : Promise<Result<Track[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_tracks_command", { projectId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -58,7 +74,10 @@ async getAssetsCommand(projectId: number) : Promise<Result<Asset[], string>> {
 /** user-defined types **/
 
 export type Asset = { id: number; project_id: number; file_path: string; asset_type: string; duration_ms: number | null; width: number | null; height: number | null; file_size_bytes: number; imported_at: string }
+export type Clip = { id: number; track_id: number; asset_id: number | null; start_time_ms: number; duration_ms: number; asset_start_offset_ms: number; asset_end_offset_ms: number; volume: number; is_muted: boolean }
 export type Project = { id: number; name: string; duration_ms: number; frame_rate: number; resolution_width: number; resolution_height: number; created_at: string; updated_at: string }
+export type Track = { id: number; project_id: number; track_type: string; order_index: number; is_locked: boolean; is_muted: boolean }
+export type TrackWithClip = { track: Track; clip: Clip }
 
 /** tauri-specta globals **/
 

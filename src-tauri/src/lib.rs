@@ -12,6 +12,8 @@ pub fn run() {
             commands::projects::get_project_command,
             commands::assets::add_asset_command,
             commands::assets::get_assets_command,
+            commands::tracks::create_track_with_clip_command,
+            commands::tracks::get_tracks_command,
         ]);
 
     #[cfg(debug_assertions)]
