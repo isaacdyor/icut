@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Diesel development database
+src-tauri/icut.db
+src-tauri/icut.db-shm
+src-tauri/icut.db-wal
