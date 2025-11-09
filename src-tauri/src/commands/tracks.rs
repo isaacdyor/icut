@@ -122,6 +122,17 @@ pub fn get_tracks_by_project(
         .load(conn)
 }
 
+pub fn get_clips_by_track(
+    conn: &mut SqliteConnection,
+    track_id: i32,
+) -> Result<Vec<Clip>, diesel::result::Error> {
+    clips::table
+        .filter(clips::track_id.eq(track_id))
+        .select(Clip::as_select())
+        .order(clips::start_time_ms.asc())
+        .load(conn)
+}
+
 // Tauri commands
 #[tauri::command]
 #[specta::specta]
@@ -142,4 +153,11 @@ pub fn create_track_with_clip_command(
 pub fn get_tracks_command(app: tauri::AppHandle, project_id: i32) -> Result<Vec<Track>, String> {
     let mut conn = db::establish_connection(&app);
     get_tracks_by_project(&mut conn, project_id).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_clips_command(app: tauri::AppHandle, track_id: i32) -> Result<Vec<Clip>, String> {
+    let mut conn = db::establish_connection(&app);
+    get_clips_by_track(&mut conn, track_id).map_err(|e| e.to_string())
 }

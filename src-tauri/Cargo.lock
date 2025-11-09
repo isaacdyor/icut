@@ -9,6 +9,40 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe438c63458706e03479442743baae6c88256498e6431708f6dfc520a26515d3"
 
 [[package]]
+name = "ac-ffmpeg"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fd5735fde11540ea2a6e5cc93fea7fe8d8ff0f39f1630cbd21c74155d5ae6710"
+dependencies = [
+ "ac-ffmpeg-build",
+ "ac-ffmpeg-features",
+ "cc",
+ "lazy_static",
+ "rustc_version",
+]
+
+[[package]]
+name = "ac-ffmpeg-build"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ddd4d05f90fca97e6f5960cbca5154985db2b3e91592d874f0f22a8a34f53aa9"
+dependencies = [
+ "cfg-if",
+ "pkg-config",
+ "vcpkg",
+]
+
+[[package]]
+name = "ac-ffmpeg-features"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c6bdd0b60d57a35283db1b94d786f47857b412195943b38be68a9dbb481adb9c"
+dependencies = [
+ "ac-ffmpeg-build",
+ "cc",
+]
+
+[[package]]
 name = "adler2"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1766,6 +1800,7 @@ dependencies = [
 name = "icut"
 version = "0.1.0"
 dependencies = [
+ "ac-ffmpeg",
  "diesel",
  "diesel_migrations",
  "dotenvy",
