@@ -26,4 +26,6 @@ tauri-plugin-window-state = "2"
 specta = "=2.0.0-rc.22"
 specta-typescript = "0.0.9"
 tauri-specta = { version = "=2.0.0-rc.21", features = ["derive", "typescript"] }
+diesel = { version = "2.3.3", features = ["sqlite", "returning_clauses_for_sqlite_3_35"] }
+dotenvy = "0.15.7"
 
